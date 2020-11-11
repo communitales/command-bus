@@ -1,0 +1,45 @@
+{
+    "name": "communitales/command-bus",
+    "description": "Communitales Command Bus Component",
+    "keywords": [
+        "command-bus",
+        "php"
+    ],
+    "type": "library",
+    "homepage": "https://www.communitales.com",
+    "license": "MIT",
+    "require": {
+        "php": ">=7.4",
+        "communitales/log": "^2.0",
+        "communitales/status-bus": "^1.0"
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^0.12",
+        "phpstan/phpstan-deprecation-rules": "^0.12",
+        "phpstan/phpstan-phpunit": "^0.12",
+        "phpunit/phpunit": "^9.4",
+        "vimeo/psalm": "^4.1",
+        "doctrine/orm": "^2.7"
+    },
+    "autoload": {
+        "psr-4": {
+            "Communitales\\Component\\CommandBus\\": "src/CommandBus"
+        },
+        "exclude-from-classmap": [
+            "/tests/"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Communitales\\Component\\CommandBus\\Test\\": "tests/CommandBus"
+        }
+    },
+    "scripts": {
+        "phpstan": "vendor/bin/phpstan analyse -c phpstan.dev.neon > docs/TODO-phpstan.md",
+        "psalm": "vendor/bin/psalm -m > docs/TODO-psalm.md",
+        "test": "vendor/bin/phpunit"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
