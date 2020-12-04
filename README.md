@@ -13,17 +13,18 @@ Setup for Symfony in `services.yaml`:
 ```
 services:
 
-    _defaults:
-        bind:
-            iterable $commandHandlers: !tagged_iterator communitales.command_handler
-
     _instanceof:
         Communitales\Component\CommandBus\CommandBusAwareInterface:
             calls:
-                - [setCommandBus, ['@App\Component\Cqrs\CommandBus']]
+                - [setCommandBus, ['@Communitales\Component\CommandBus\CommandBus']]
 
         Communitales\Component\CommandBus\Handler\CommandHandlerInterface:
             tags: ['communitales.command_handler']
+
+
+    Communitales\Component\CommandBus\CommandBus:
+        arguments:
+            - !tagged_iterator communitales.command_handler
 
 ```
 
