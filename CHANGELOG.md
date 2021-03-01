@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+1.1.0
+-----
+
+* Fixed: Also catch Doctrine\DBAL\Exception as DatabaseErrorResult
+* Changed: PHP 8.0 is now minimum PHP Version
+
+
 1.0.2
 -----
 
@@ -10,10 +17,10 @@ CHANGELOG
 1.0.1
 -----
 
- * Change: Upgrade StatusBus to 1.0.2
+* Changed: Upgrade StatusBus to 1.0.2
 
 
 1.0.0
 -----
 
- * Initial version
+* Initial version

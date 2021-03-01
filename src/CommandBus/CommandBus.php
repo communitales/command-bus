@@ -102,7 +102,7 @@ class CommandBus implements CommandBusInterface, StatusBusAwareInterface, Logger
                     $result = $commandHandler->handle($command);
                 }
             }
-        } catch (\Doctrine\ORM\ORMException $exception) {
+        } catch (\Doctrine\ORM\ORMException | \Doctrine\DBAL\Exception | \PDOException $exception) {
             $this->logException($exception);
 
             $result = new DatabaseErrorResult(StatusMessage::createErrorMessage($this->statusMessageDatabaseError));

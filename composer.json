@@ -9,7 +9,7 @@
     "homepage": "https://www.communitales.com",
     "license": "MIT",
     "require": {
-        "php": ">=7.4",
+        "php": ">=8.0",
         "communitales/log": "^2.0",
         "communitales/status-bus": ">=1.0.2"
     },
@@ -18,7 +18,7 @@
         "phpstan/phpstan-deprecation-rules": "^0.12",
         "phpstan/phpstan-phpunit": "^0.12",
         "phpunit/phpunit": "^9.5",
-        "vimeo/psalm": "^4.3",
+        "vimeo/psalm": "^4.6",
         "doctrine/orm": "^2.8"
     },
     "autoload": {

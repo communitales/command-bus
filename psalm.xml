@@ -16,6 +16,7 @@
 
     <issueHandlers>
         <PropertyNotSetInConstructor errorLevel="suppress"/>
+        <RedundantPropertyInitializationCheck errorLevel="suppress"/>
         <UndefinedConstant errorLevel="suppress"/>
     </issueHandlers>
 </psalm>
