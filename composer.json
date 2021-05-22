@@ -18,7 +18,7 @@
         "phpstan/phpstan-deprecation-rules": "^0.12",
         "phpstan/phpstan-phpunit": "^0.12",
         "phpunit/phpunit": "^9.5",
-        "vimeo/psalm": "^4.6",
+        "vimeo/psalm": "^4.7",
         "doctrine/orm": "^2.8"
     },
     "autoload": {
@@ -36,8 +36,12 @@
     },
     "scripts": {
         "phpstan": "vendor/bin/phpstan analyse -c phpstan.dev.neon > docs/TODO-phpstan.md",
-        "psalm": "vendor/bin/psalm -m > docs/TODO-psalm.md",
-        "test": "vendor/bin/phpunit"
+        "psalm": "vendor/bin/psalm -m --no-cache > docs/TODO-psalm.md",
+        "test": "vendor/bin/phpunit",
+        "codecheck": [
+            "@phpstan",
+            "@psalm"
+        ]
     },
     "config": {
         "sort-packages": true

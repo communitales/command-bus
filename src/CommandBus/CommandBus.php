@@ -52,7 +52,6 @@ class CommandBus implements CommandBusInterface, StatusBusAwareInterface, Logger
      */
     public function __construct(iterable $commandBusHandlers)
     {
-        /** @var CommandHandlerInterface $commandHandler */
         foreach ($commandBusHandlers->getIterator() as $commandHandler) {
             $this->addCommandHandler($commandHandler);
         }
@@ -88,11 +87,14 @@ class CommandBus implements CommandBusInterface, StatusBusAwareInterface, Logger
 
     /**
      * @param CommandInterface $command
+     * @param bool             $displayStatusMessage
      *
      * @return CommandHandlerResultInterface
      */
-    public function dispatch(CommandInterface $command): CommandHandlerResultInterface
-    {
+    public function dispatch(
+        CommandInterface $command,
+        bool $displayStatusMessage = true
+    ): CommandHandlerResultInterface {
         $commandClass = get_class($command);
         $result = null;
 
@@ -116,7 +118,7 @@ class CommandBus implements CommandBusInterface, StatusBusAwareInterface, Logger
 
             // If a StatusBus was set, then send StatusMessage of result
             $statusMessage = $result->getStatusMessage();
-            if ($statusMessage !== null && isset($this->statusBus)) {
+            if ($displayStatusMessage && $statusMessage !== null && isset($this->statusBus)) {
                 $this->statusBus->addStatusMessage($statusMessage);
             }
 
