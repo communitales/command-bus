@@ -22,9 +22,12 @@ interface CommandBusInterface
 
     /**
      * @param CommandInterface $command
+     * @param bool             $displayStatusMessage
      *
      * @return CommandHandlerResultInterface
-     * @throws CanNotDispatchCommandException
      */
-    public function dispatch(CommandInterface $command): CommandHandlerResultInterface;
+    public function dispatch(
+        CommandInterface $command,
+        bool $displayStatusMessage = true
+    ): CommandHandlerResultInterface;
 }
