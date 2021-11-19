@@ -10,16 +10,17 @@
     "license": "MIT",
     "require": {
         "php": ">=8.0",
-        "communitales/log": "^2.0",
+        "communitales/log": "^2.0|^3.0",
         "communitales/status-bus": ">=1.0.2"
     },
     "require-dev": {
-        "phpstan/phpstan": "^0.12",
-        "phpstan/phpstan-deprecation-rules": "^0.12",
-        "phpstan/phpstan-phpunit": "^0.12",
+        "doctrine/orm": "^2.8",
+        "phpstan/phpstan": "^1.0",
+        "phpstan/phpstan-deprecation-rules": "^1.0",
+        "phpstan/phpstan-phpunit": "^1.0",
         "phpunit/phpunit": "^9.5",
-        "vimeo/psalm": "^4.7",
-        "doctrine/orm": "^2.8"
+        "psr/log": "2.0",
+        "vimeo/psalm": "^4.7"
     },
     "autoload": {
         "psr-4": {

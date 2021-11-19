@@ -1,6 +1,23 @@
 CHANGELOG
 =========
 
+1.1.3
+-----
+
+* Changed: Updated composer dependencies
+
+1.1.2
+-----
+
+Fixed: Update Interface according to implementation
+
+
+1.1.1
+-----
+
+* Changed: DisplayStatusMessage as Option for dispatch
+
+
 1.1.0
 -----
 
