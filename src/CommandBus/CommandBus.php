@@ -1,7 +1,6 @@
 <?php
-
 /**
- * @copyright   Copyright (c) 2020 Communitales GmbH (https://www.communitales.com/)
+ * @copyright   Copyright (c) 2020 - 2023 Communitales GmbH (https://www.communitales.com/)
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -18,7 +17,10 @@ use Communitales\Component\Log\LogAwareTrait;
 use Communitales\Component\StatusBus\StatusBusAwareInterface;
 use Communitales\Component\StatusBus\StatusBusAwareTrait;
 use Communitales\Component\StatusBus\StatusMessage;
+use Doctrine\DBAL\Exception as DBALException;
+use Doctrine\ORM\ORMException;
 use IteratorAggregate;
+use PDOException;
 use Psr\Log\LoggerAwareInterface;
 use Throwable;
 use function get_class;
@@ -28,7 +30,6 @@ use function get_class;
  */
 class CommandBus implements CommandBusInterface, StatusBusAwareInterface, LoggerAwareInterface
 {
-
     use StatusBusAwareTrait;
     use LogAwareTrait;
 
@@ -37,14 +38,8 @@ class CommandBus implements CommandBusInterface, StatusBusAwareInterface, Logger
      */
     private array $commandHandlers = [];
 
-    /**
-     * @var string
-     */
     private string $statusMessageDatabaseError = 'status_message.database_error';
 
-    /**
-     * @var string
-     */
     private string $statusMessageFatalError = 'status_message.fatal_error';
 
     /**
@@ -57,18 +52,13 @@ class CommandBus implements CommandBusInterface, StatusBusAwareInterface, Logger
         }
     }
 
-    /**
-     * @param CommandHandlerInterface $commandHandler
-     */
     public function addCommandHandler(CommandHandlerInterface $commandHandler): void
     {
         $this->commandHandlers[] = $commandHandler;
     }
 
     /**
-     * This method can be used to set a different translation key or setup a plain text message without i18n.
-     *
-     * @param string $statusMessageDatabaseError
+     * This method can be used to set a different translation key or set up a plain text message without i18n.
      */
     public function setStatusMessageDatabaseError(string $statusMessageDatabaseError): void
     {
@@ -76,46 +66,33 @@ class CommandBus implements CommandBusInterface, StatusBusAwareInterface, Logger
     }
 
     /**
-     * This method can be used to set a different translation key or setup a plain text message without i18n.
-     *
-     * @param string $statusMessageFatalError
+     * This method can be used to set a different translation key or set up a plain text message without i18n.
      */
     public function setStatusMessageFatalError(string $statusMessageFatalError): void
     {
         $this->statusMessageFatalError = $statusMessageFatalError;
     }
 
-    /**
-     * @param CommandInterface $command
-     * @param bool             $displayStatusMessage
-     *
-     * @return CommandHandlerResultInterface
-     */
     public function dispatch(
         CommandInterface $command,
         bool $displayStatusMessage = true
     ): CommandHandlerResultInterface {
-        $commandClass = get_class($command);
         $result = null;
-
         try {
             foreach ($this->commandHandlers as $commandHandler) {
                 if ($commandHandler->canHandle($command)) {
                     $result = $commandHandler->handle($command);
                 }
             }
-        } catch (\Doctrine\ORM\ORMException | \Doctrine\DBAL\Exception | \PDOException $exception) {
+        } catch (ORMException|DBALException|PDOException $exception) {
             $this->logException($exception);
-
             $result = new DatabaseErrorResult(StatusMessage::createErrorMessage($this->statusMessageDatabaseError));
-        } catch (Throwable $exception) {
-            $this->logException($exception);
-
+        } catch (Throwable $throwable) {
+            $this->logException($throwable);
             $result = new FatalErrorResult(StatusMessage::createErrorMessage($this->statusMessageFatalError));
         }
 
         if ($result !== null) {
-
             // If a StatusBus was set, then send StatusMessage of result
             $statusMessage = $result->getStatusMessage();
             if ($displayStatusMessage && $statusMessage !== null && isset($this->statusBus)) {
@@ -125,7 +102,7 @@ class CommandBus implements CommandBusInterface, StatusBusAwareInterface, Logger
             return $result;
         }
 
+        $commandClass = get_class($command);
         throw CanNotDispatchCommandException::forClass($commandClass);
     }
-
 }
