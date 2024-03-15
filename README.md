@@ -1,6 +1,7 @@
 # Communitales Command Bus Component
 
-Decouple applications with a command bus.
+Decouple applications with a synchronous command bus.
+
 
 ## Setup
 
@@ -28,6 +29,7 @@ services:
 
 ```
 
+
 ## Usage
 
 Example of a command:
@@ -39,33 +41,11 @@ namespace App\Domain\Command\Customer;
 use Communitales\Component\CommandBus\Command\CommandInterface;
 use App\Entity\Customer;
 
-/**
- * Class CreateCustomerCommand
- */
-class CreateCustomerCommand implements CommandInterface
+readonly class CreateCustomerCommand implements CommandInterface
 {
-
-    /**
-     * @var Customer
-     */
-    private Customer $customer;
-
-    /**
-     * @param Customer $customer
-     */
-    public function __construct(Customer $customer)
+    public function __construct(public Customer $customer)
     {
-        $this->customer = $customer;
     }
-
-    /**
-     * @return Customer
-     */
-    public function getCustomer(): Customer
-    {
-        return $this->customer;
-    }
-
 }
 
 ```
@@ -86,34 +66,20 @@ use Communitales\Component\CommandBus\Handler\CommandHandlerInterface;
 use Communitales\Component\CommandBus\Handler\CommandHandlerTrait;
 use Communitales\Component\CommandBus\Handler\Result\CommandHandlerResultInterface;
 use Communitales\Component\CommandBus\Handler\Result\SuccessResult;
-use Doctrine\ORM\ORMException;
+use Communitales\Component\StatusBus\StatusMessage;
+use Override;
+use Symfony\Component\Translation\TranslatableMessage;
+
 use function sprintf;
 
-/**
- * Class CreateCustomerCommandHandler
- */
 class CustomerCommandHandler implements CommandHandlerInterface
 {
-
     use CommandHandlerTrait;
 
-    /**
-     * @var CustomerRepository
-     */
-    private CustomerRepository $customerRepository;
-
-    /**
-     * @param CustomerRepository      $customerRepository
-     */
-    public function __construct(CustomerRepository $customerRepository) {
-        $this->customerRepository = $customerRepository;
+    public function __construct(private readonly CustomerRepository $customerRepository) {
     }
 
-    /**
-     * @param CommandInterface $command
-     *
-     * @return bool
-     */
+    #[Override]
     public function canHandle(CommandInterface $command): bool
     {
         return $command instanceof CreateCustomerCommand
@@ -121,61 +87,26 @@ class CustomerCommandHandler implements CommandHandlerInterface
             || $command instanceof DeleteCustomerCommand;
     }
 
-    /**
-     * @param CommandInterface $command
-     *
-     * @return CommandHandlerResultInterface
-     * @throws ORMException
-     */
-    public function handle(CommandInterface $command): CommandHandlerResultInterface
-    {
-        if ($command instanceof CreateCustomerCommand) {
-            return $this->createCustomer($command);
-        }
-        if ($command instanceof UpdateCustomerCommand) {
-            return $this->updateCustomer($command);
-        }
-        if ($command instanceof DeleteCustomerCommand) {
-            return $this->deleteCustomer($command);
-        }
-
-        return $this->canNotHandle($command);
-    }
-
-    /**
-     * @param CreateCustomerCommand $command
-     *
-     * @return CommandHandlerResultInterface
-     * @throws ORMException
-     */
     private function createCustomer(CreateCustomerCommand $command): CommandHandlerResultInterface
     {
-        $customer = $command->getCustomer();
+        $customer = $command->customer;
 
         $this->customerRepository->save($customer);
 
         return new SuccessResult(
-            StatusMessage::createSuccessMessage('domain_customer.result_created', ['name' => $customer->getName()])
+            StatusMessage::createSuccessMessage(
+                new TranslatableMessage(
+                    'domain_customer.result_created', ['name' => $customer->getName()]
+                )
+            )
         );
     }
 
-    /**
-     * @param UpdateCustomerCommand $command
-     *
-     * @return CommandHandlerResultInterface
-     * @throws ORMException
-     */
     private function updateCustomer(UpdateCustomerCommand $command): CommandHandlerResultInterface
     {
         // ...
     }
 
-    /**
-     * @param DeleteCustomerCommand $command
-     *
-     * @return CommandHandlerResultInterface
-     * @throws ORMException
-     */
     private function deleteCustomer(DeleteCustomerCommand $command): CommandHandlerResultInterface
     {
         // ...

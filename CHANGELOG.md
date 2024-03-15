@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.0.0 [BC Break]
+
+* Change: Upgrade to PHP 8.3
+* Change: [BC] Update to communitales/status-bus 2.0
+* Change: `CommandHandlerTrait` now provides a `handle` method which calls command specific handle methods via a naming
+  convention
+
+
 ## 1.2.0
 
 * Change: Upgrade to PHP 8.2 and improve code quality

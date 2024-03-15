@@ -9,41 +9,46 @@
     "homepage": "https://www.communitales.com",
     "license": "MIT",
     "require": {
-        "php": ">=8.2",
+        "php": ">=8.3",
         "communitales/log": "^3.1",
-        "communitales/status-bus": "^1.1"
+        "communitales/status-bus": "^2.0"
     },
     "require-dev": {
-        "doctrine/orm": "^2.8",
-        "phpstan/phpstan": "^1.0",
-        "phpstan/phpstan-deprecation-rules": "^1.0",
-        "phpstan/phpstan-phpunit": "^1.0",
-        "phpunit/phpunit": "^10.0",
-        "rector/rector": "^0.15.19",
-        "vimeo/psalm": "^5.7.7"
+        "doctrine/orm": "^3.1",
+        "friendsofphp/php-cs-fixer": "^3.51",
+        "phpstan/phpstan": "^1.10",
+        "phpstan/phpstan-deprecation-rules": "^1.1",
+        "phpstan/phpstan-phpunit": "^1.3",
+        "phpunit/phpunit": "^10.5",
+        "psalm/plugin-phpunit": "^0.19.0",
+        "rector/rector": "^1.0",
+        "vimeo/psalm": "^5.23"
+    },
+    "conflict": {
+        "doctrine/orm": "<3.0"
     },
     "autoload": {
         "psr-4": {
             "Communitales\\Component\\CommandBus\\": "src/CommandBus"
-        },
-        "exclude-from-classmap": [
-            "/tests/"
-        ]
+        }
     },
     "autoload-dev": {
         "psr-4": {
-            "Communitales\\Component\\CommandBus\\Test\\": "tests/CommandBus"
+            "Communitales\\Test\\Unit\\Component\\CommandBus\\": "tests/Unit"
         }
     },
     "scripts": {
-        "phpstan": "vendor/bin/phpstan analyse -c phpstan.dev.neon --xdebug > docs/TODO-phpstan.md",
-        "psalm": "vendor/bin/psalm -m --no-cache > docs/TODO-psalm.md",
+        "phpcs": "vendor/bin/php-cs-fixer fix",
+        "phpstan": "vendor/bin/phpstan analyse -c phpstan.dev.neon > docs/TODO-phpstan.md",
+        "psalm": "vendor/bin/psalm -m > docs/TODO-psalm.md",
         "rector": "vendor/bin/rector process",
         "test": "vendor/bin/phpunit",
         "codecheck": [
+            "@rector",
+            "@phpcs",
             "@phpstan",
             "@psalm",
-            "@rector"
+            "@test"
         ]
     },
     "config": {
