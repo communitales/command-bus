@@ -41,5 +41,4 @@ class TestCommandHandler implements CommandHandlerInterface
             )
         );
     }
-
 }

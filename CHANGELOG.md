@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.1.0
+
+* Change: Exceptions in CommandBus Constructor are not caught anymore.
+
+
 ## 2.0.0 [BC Break]
 
 * Change: Upgrade to PHP 8.3

@@ -22,6 +22,7 @@ use Communitales\Component\StatusBus\StatusMessage;
 use Doctrine\DBAL\Exception as DbalException;
 use Doctrine\ORM\Exception\ManagerException;
 use Doctrine\ORM\Exception\ORMException;
+use Exception;
 use IteratorAggregate;
 use Override;
 use Psr\Log\LoggerAwareInterface;
@@ -47,19 +48,17 @@ class CommandBus implements CommandBusInterface, LoggerAwareInterface, StatusBus
 
     /**
      * @param IteratorAggregate<CommandHandlerInterface> $commandBusHandlers
+     *
+     * @throws Exception
      */
     public function __construct(iterable $commandBusHandlers)
     {
-        try {
-            foreach ($commandBusHandlers->getIterator() as $commandHandler) {
-                $this->addCommandHandler($commandHandler);
-            }
-
-            $this->statusMessageDatabaseError = new TranslatableMessage('status_message.database_error');
-            $this->statusMessageFatalError = new TranslatableMessage('status_message.v');
-        } catch (Throwable $throwable) {
-            $this->logException($throwable);
+        foreach ($commandBusHandlers->getIterator() as $commandHandler) {
+            $this->addCommandHandler($commandHandler);
         }
+
+        $this->statusMessageDatabaseError = new TranslatableMessage('status_message.database_error');
+        $this->statusMessageFatalError = new TranslatableMessage('status_message.fatal_error');
     }
 
     public function addCommandHandler(CommandHandlerInterface $commandHandler): void

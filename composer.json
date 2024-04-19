@@ -30,7 +30,10 @@
     "autoload": {
         "psr-4": {
             "Communitales\\Component\\CommandBus\\": "src/CommandBus"
-        }
+        },
+        "exclude-from-classmap": [
+            "/tests/"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

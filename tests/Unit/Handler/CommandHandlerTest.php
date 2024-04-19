@@ -33,5 +33,4 @@ class CommandHandlerTest extends TestCase
         $result = $this->commandHandler->handle($command);
         $this->assertInstanceOf(SuccessResult::class, $result);
     }
-
 }
