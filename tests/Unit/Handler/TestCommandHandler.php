@@ -33,11 +33,19 @@ class TestCommandHandler implements CommandHandlerInterface
 
     public function test(TestCommand $command): CommandHandlerResultInterface
     {
-        return new SuccessResult(
-            StatusMessage::createSuccessMessage(
-                new TranslatableMessage(
-                    $command->test
+        if ($command->test === 'success') {
+            return new SuccessResult(
+                StatusMessage::createSuccessMessage(
+                    new TranslatableMessage(
+                        $command->test
+                    )
                 )
+            );
+        }
+
+        return new SuccessResult(
+            StatusMessage::createErrorMessage(
+                $command->test
             )
         );
     }

@@ -15,4 +15,5 @@ use Communitales\Component\StatusBus\StatusMessage;
  */
 interface CommandHandlerResultInterface
 {
+    public function getStatusMessage(): ?StatusMessage;
 }

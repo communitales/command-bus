@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.2.0
+
+* Change: The Method `getStatusMessage()` is back in `CommandHandlerResultInterface`. This provides a better error
+  handling.
+
+
 ## 2.1.0
 
 * Change: Exceptions in CommandBus Constructor are not caught anymore.

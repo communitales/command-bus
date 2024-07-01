@@ -9,6 +9,7 @@
 
 namespace Communitales\Test\Unit\Component\CommandBus\Handler;
 
+use Communitales\Component\CommandBus\Handler\Result\ErrorResult;
 use Communitales\Component\CommandBus\Handler\Result\SuccessResult;
 use Override;
 use PHPUnit\Framework\TestCase;
@@ -26,11 +27,23 @@ class CommandHandlerTest extends TestCase
         $this->commandHandler = new TestCommandHandler();
     }
 
-    public function testHandle(): void
+    public function testHandleSuccess(): void
     {
-        $command = new TestCommand('status.success');
+        $command = new TestCommand('success');
 
         $result = $this->commandHandler->handle($command);
+        if (!$result instanceof SuccessResult) {
+            self::fail('Result should be SuccessResult. Message: '.(string)$result->getStatusMessage());
+        }
+
         $this->assertInstanceOf(SuccessResult::class, $result);
+    }
+
+    public function testHandleError(): void
+    {
+        $command = new TestCommand('error');
+
+        $result = $this->commandHandler->handle($command);
+        $this->assertInstanceOf(ErrorResult::class, $result);
     }
 }

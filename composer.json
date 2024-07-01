@@ -10,8 +10,8 @@
     "license": "MIT",
     "require": {
         "php": ">=8.3",
-        "communitales/log": "^3.1",
-        "communitales/status-bus": "^2.0"
+        "communitales/log": "^3.2",
+        "communitales/status-bus": "^2.2"
     },
     "require-dev": {
         "doctrine/orm": "^3.1",
