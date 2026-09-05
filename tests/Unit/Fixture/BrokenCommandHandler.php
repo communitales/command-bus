@@ -1,7 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 /**
- * @copyright   Copyright (c) 2024 Communitales GmbH (https://www.communitales.com/)
+ * @copyright Copyright (c) 2020 - 2026 Communitales GmbH (https://www.communitales.com/)
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -9,12 +11,12 @@
 
 namespace Communitales\Test\Unit\Component\CommandBus\Fixture;
 
-use Override;
 use Communitales\Component\CommandBus\Command\CommandInterface;
 use Communitales\Component\CommandBus\Handler\CommandHandlerInterface;
 use Communitales\Component\CommandBus\Handler\Result\CommandHandlerResultInterface;
 use Communitales\Component\CommandBus\Handler\Result\SuccessResult;
 use LogicException;
+use Override;
 
 class BrokenCommandHandler implements CommandHandlerInterface
 {

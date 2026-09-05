@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @copyright   Copyright (c) 2024 Communitales GmbH (https://www.communitales.com/)
+ * @copyright Copyright (c) 2020 - 2026 Communitales GmbH (https://www.communitales.com/)
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -9,10 +9,10 @@
 
 namespace Communitales\Test\Unit\Component\CommandBus\Fixture;
 
-use Override;
 use Closure;
 use Countable;
 use IteratorAggregate;
+use Override;
 use Traversable;
 
 use function is_int;
@@ -23,7 +23,7 @@ use function is_int;
  */
 class RewindableGenerator implements Countable, IteratorAggregate
 {
-    private Closure $generator;
+    private readonly Closure $generator;
 
     private Closure|int $count;
 

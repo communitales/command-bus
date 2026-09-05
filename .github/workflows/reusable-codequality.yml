@@ -1,0 +1,48 @@
+name: PHP
+
+on:
+    workflow_call:
+
+    # Kann auch manuell ausgeführt werden.
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+jobs:
+    test:
+        strategy:
+            max-parallel: 3
+            matrix:
+                php:
+                    - '8.4'
+                    - '8.5'
+
+        runs-on: ubuntu-24.04
+
+        steps:
+            -   name: Setup PHP
+                uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+                with:
+                    php-version: ${{ matrix.php }}
+                    extensions: zip
+
+            -   uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+            -   name: Install dependencies
+                run: composer install --no-ansi --no-interaction --no-progress --prefer-dist
+
+            -   name: Check all PHP files Syntax
+                run: find src -type f -name "*.php" -exec php -l {} \; || exit 1
+
+            -   name: PHPUnit
+                run: vendor/bin/phpunit
+
+            -   name: PHPStan
+                run: vendor/bin/phpstan analyse -vv
+
+            -   name: Rector
+                run: vendor/bin/rector process
+
+            -   name: PHP-CS-Fixer
+                run: vendor/bin/php-cs-fixer fix

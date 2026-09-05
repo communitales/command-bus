@@ -1,6 +1,7 @@
 <?php
+
 /**
- * @copyright   Copyright (c) 2020 - 2024 Communitales GmbH (https://www.communitales.com/)
+ * @copyright Copyright (c) 2020 - 2026 Communitales GmbH (https://www.communitales.com/)
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -8,7 +9,6 @@
 
 namespace Communitales\Component\CommandBus\Handler;
 
-use App\Domain\Command\Portal\BufferLike\CreatePostingLikeCommand;
 use Communitales\Component\CommandBus\Command\CommandInterface;
 use Communitales\Component\CommandBus\Handler\Result\CommandHandlerResultInterface;
 use Communitales\Component\CommandBus\Handler\Result\ErrorResult;
