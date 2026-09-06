@@ -25,6 +25,7 @@ use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
 
@@ -60,6 +61,38 @@ final class CommandBusBundleTest extends TestCase
         $container->compile();
     }
 
+    public function testNonArrayHandlerTagIsRejected(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessageIsOrContains('tag configuration');
+
+        new CommandHandlerCompilerPass()->process(new InvalidTagContainerBuilder());
+    }
+
+    public function testInvalidCommandClassIsRejected(): void
+    {
+        $container = new ContainerBuilder();
+        $container->register('invalid.command.handler', AttributedHandler::class)
+            ->addTag(CommandHandlerCompilerPass::HANDLER_TAG, ['handles' => stdClass::class]);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessageIsOrContains('must declare a valid CommandInterface class');
+
+        new CommandHandlerCompilerPass()->process($container);
+    }
+
+    public function testHandlerWithoutHandlerInterfaceIsRejected(): void
+    {
+        $container = new ContainerBuilder();
+        $container->register('invalid.handler', stdClass::class)
+            ->addTag(CommandHandlerCompilerPass::HANDLER_TAG, ['handles' => AttributedCommand::class]);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessageIsOrContains('must implement');
+
+        new CommandHandlerCompilerPass()->process($container);
+    }
+
     /**
      * @param class-string ...$handlerClasses
      */
@@ -88,6 +121,15 @@ final class CommandBusBundleTest extends TestCase
         }
 
         return $commandBus;
+    }
+}
+
+final class InvalidTagContainerBuilder extends ContainerBuilder
+{
+    /** @return array<string, list<mixed>> */
+    public function findTaggedServiceIds(string $name, bool $throwOnAbstract = false): array
+    {
+        return ['invalid.handler' => ['not-an-array']];
     }
 }
 

@@ -28,9 +28,9 @@ use Doctrine\DBAL\Exception as DbalException;
 use LogicException;
 use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use stdClass;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 use Symfony\Contracts\Service\ServiceCollectionInterface;
 
@@ -38,9 +38,9 @@ use Symfony\Contracts\Service\ServiceCollectionInterface;
  * Class CommandBusTest
  */
 #[CoversClass(CommandBus::class)]
-#[UsesClass(CanNotDispatchCommandException::class)]
-#[UsesClass(CommandResult::class)]
-#[UsesClass(CommandResultException::class)]
+#[CoversClass(CanNotDispatchCommandException::class)]
+#[CoversClass(CommandResult::class)]
+#[CoversClass(CommandResultException::class)]
 final class CommandBusTest extends TestCase
 {
     public function testHandlersAreLoadedLazilyByCommandClass(): void
@@ -99,11 +99,12 @@ final class CommandBusTest extends TestCase
             ),
         ]);
         $commandBus = new CommandBus($handlers, $exceptionLogger);
+        $commandBus->setStatusMessageDatabaseError('custom.database_error');
 
         $result = $commandBus->dispatch(new TestCommand('success'));
 
         $this->assertSame(CommandResultStatus::Failed, $result->getStatus());
-        $this->assertSame('status_message.database_error', $result->getStatusMessage()?->getMessage());
+        $this->assertSame('custom.database_error', $result->getStatusMessage()?->getMessage());
     }
 
     public function testUnexpectedExceptionReturnsFailedResultAndLogsException(): void
@@ -119,6 +120,33 @@ final class CommandBusTest extends TestCase
                 static fn (CommandInterface $command): never => throw $exception
             ),
         ]);
+        $commandBus = new CommandBus($handlers, $exceptionLogger);
+        $commandBus->setStatusMessageFatalError('custom.fatal_error');
+
+        $result = $commandBus->dispatch(new TestCommand('success'));
+
+        $this->assertSame(CommandResultStatus::Failed, $result->getStatus());
+        $this->assertSame('custom.fatal_error', $result->getStatusMessage()?->getMessage());
+    }
+
+    public function testInvalidHandlerReturnsFailedResultAndLogsException(): void
+    {
+        $handlers = $this->createMock(ServiceCollectionInterface::class);
+        $handlers
+            ->expects($this->once())
+            ->method('has')
+            ->with(TestCommand::class)
+            ->willReturn(true);
+        $handlers
+            ->expects($this->once())
+            ->method('get')
+            ->with(TestCommand::class)
+            ->willReturn(new stdClass());
+        $exceptionLogger = $this->createMock(ExceptionLoggerInterface::class);
+        $exceptionLogger
+            ->expects($this->once())
+            ->method('logException')
+            ->with($this->isInstanceOf(LogicException::class));
         $commandBus = new CommandBus($handlers, $exceptionLogger);
 
         $result = $commandBus->dispatch(new TestCommand('success'));
