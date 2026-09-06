@@ -32,11 +32,8 @@ class CommandHandlerTest extends TestCase
         $command = new TestCommand('success');
 
         $result = $this->commandHandler->handle($command);
-        if (!$result instanceof SuccessResult) {
-            self::fail('Result should be SuccessResult. Message: '.(string)$result->getStatusMessage());
-        }
 
-        $this->assertInstanceOf(SuccessResult::class, $result);
+        $this->assertInstanceOf(SuccessResult::class, $result, 'Result should be SuccessResult. Message: '.(string)$result->getStatusMessage());
     }
 
     public function testHandleError(): void

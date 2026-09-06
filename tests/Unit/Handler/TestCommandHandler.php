@@ -15,6 +15,7 @@ use Communitales\Component\CommandBus\Command\CommandInterface;
 use Communitales\Component\CommandBus\Handler\CommandHandlerInterface;
 use Communitales\Component\CommandBus\Handler\CommandHandlerTrait;
 use Communitales\Component\CommandBus\Handler\Result\CommandHandlerResultInterface;
+use Communitales\Component\CommandBus\Handler\Result\ErrorResult;
 use Communitales\Component\CommandBus\Handler\Result\SuccessResult;
 use Communitales\Component\StatusBus\StatusMessage;
 use Override;
@@ -45,7 +46,7 @@ class TestCommandHandler implements CommandHandlerInterface
             );
         }
 
-        return new SuccessResult(
+        return new ErrorResult(
             StatusMessage::createErrorMessage(
                 $command->test
             )

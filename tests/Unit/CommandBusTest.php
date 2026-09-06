@@ -13,9 +13,11 @@ namespace Communitales\Test\Unit\Component\CommandBus;
 
 use Communitales\Component\CommandBus\CommandBus;
 use Communitales\Test\Unit\Component\CommandBus\Fixture\BrokenCommandHandler;
-use Communitales\Test\Unit\Component\CommandBus\Fixture\RewindableGenerator;
 use Exception;
+use Generator;
+use IteratorAggregate;
 use LogicException;
+use Override;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -28,9 +30,13 @@ class CommandBusTest extends TestCase
      */
     public function testConstructorException(): void
     {
-        $iterator = new RewindableGenerator(static function () {
-            yield 0 => (new BrokenCommandHandler());
-        }, 1);
+        $iterator = new /** @implements IteratorAggregate<BrokenCommandHandler> */ class () implements IteratorAggregate {
+            #[Override]
+            public function getIterator(): Generator
+            {
+                yield new BrokenCommandHandler();
+            }
+        };
 
         $this->expectException(LogicException::class);
         $this->expectExceptionMessageIsOrContains('Constructor is broken for testing');
