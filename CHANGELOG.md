@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased [BC Break]
+## 3.0.0 [BC Break]
 
 * Add `#[AsCommandHandler]` and automatic Symfony handler discovery.
 * Resolve handlers lazily from a service collection indexed by command class.
