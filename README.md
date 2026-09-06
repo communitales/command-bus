@@ -60,8 +60,8 @@ use App\Repository\CustomerRepository;
 use Communitales\Component\CommandBus\Attribute\AsCommandHandler;
 use Communitales\Component\CommandBus\Command\CommandInterface;
 use Communitales\Component\CommandBus\Handler\CommandHandlerInterface;
-use Communitales\Component\CommandBus\Handler\Result\CommandHandlerResultInterface;
-use Communitales\Component\CommandBus\Handler\Result\SuccessResult;
+use Communitales\Component\CommandBus\Handler\Result\CommandResult;
+use Communitales\Component\CommandBus\Handler\Result\CommandResultInterface;
 use Communitales\Component\StatusBus\StatusMessage;
 
 /** @implements CommandHandlerInterface<CreateCustomerCommand> */
@@ -73,13 +73,13 @@ final class CreateCustomerCommandHandler implements CommandHandlerInterface
     }
 
     /** @param CreateCustomerCommand $command */
-    public function handle(CommandInterface $command): CommandHandlerResultInterface
+    public function handle(CommandInterface $command): CommandResultInterface
     {
         $customer = $command->customer;
 
         $this->customerRepository->save($customer);
 
-        return new SuccessResult(StatusMessage::success(
+        return CommandResult::success(StatusMessage::success(
             'domain_customer.result_created',
             ['name' => $customer->getName()],
         ));
@@ -102,11 +102,13 @@ final readonly class CustomerController
     {
         $result = $this->commandBus->dispatch($command);
 
-        // Present the CommandHandlerResultInterface as HTML, JSON, CLI output, etc.
+        // Present the CommandResultInterface as HTML, JSON, CLI output, etc.
     }
 }
 ```
 
 Every handler must declare one `#[AsCommandHandler]` attribute. Invalid command classes and
-multiple handlers for the same command cause container compilation to fail. Dispatching a command
-without a registered handler raises `CanNotDispatchCommandException`.
+multiple handlers for the same command cause container compilation to fail. `dispatch()` always
+returns a `CommandResultInterface`: expected application errors have status `Error`; missing
+handlers and caught technical exceptions have status `Failed` and are logged when an exception
+logger is configured.

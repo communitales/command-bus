@@ -11,11 +11,11 @@ declare(strict_types=1);
 namespace Communitales\Component\CommandBus\Handler;
 
 use Communitales\Component\CommandBus\Command\CommandInterface;
-use Communitales\Component\CommandBus\Handler\Result\CommandHandlerResultInterface;
+use Communitales\Component\CommandBus\Handler\Result\CommandResultInterface;
 
 /** @template-contravariant TCommand of CommandInterface */
 interface CommandHandlerInterface
 {
     /** @param TCommand $command */
-    public function handle(CommandInterface $command): CommandHandlerResultInterface;
+    public function handle(CommandInterface $command): CommandResultInterface;
 }

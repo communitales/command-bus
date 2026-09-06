@@ -14,13 +14,13 @@ use RuntimeException;
 use Throwable;
 
 /**
- * An exception representing an CommandHandlerResult.
- * This is useful if you want to return a result from a sub method of a handler method.
+ * An exception carrying a command result.
+ * This is useful for returning a result early from a nested handler method.
  */
 class CommandResultException extends RuntimeException
 {
     public function __construct(
-        public readonly CommandHandlerResultInterface $commandResult,
+        public readonly CommandResultInterface $commandResult,
         string $message = '',
         int $code = 0,
         ?Throwable $previous = null

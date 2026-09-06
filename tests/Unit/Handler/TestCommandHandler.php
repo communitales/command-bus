@@ -13,9 +13,8 @@ namespace Communitales\Test\Unit\Component\CommandBus\Handler;
 use Communitales\Component\CommandBus\Attribute\AsCommandHandler;
 use Communitales\Component\CommandBus\Command\CommandInterface;
 use Communitales\Component\CommandBus\Handler\CommandHandlerInterface;
-use Communitales\Component\CommandBus\Handler\Result\CommandHandlerResultInterface;
-use Communitales\Component\CommandBus\Handler\Result\ErrorResult;
-use Communitales\Component\CommandBus\Handler\Result\SuccessResult;
+use Communitales\Component\CommandBus\Handler\Result\CommandResult;
+use Communitales\Component\CommandBus\Handler\Result\CommandResultInterface;
 use Communitales\Component\StatusBus\StatusMessage;
 
 /**
@@ -26,15 +25,15 @@ use Communitales\Component\StatusBus\StatusMessage;
 class TestCommandHandler implements CommandHandlerInterface
 {
     /** @param TestCommand $command */
-    public function handle(CommandInterface $command): CommandHandlerResultInterface
+    public function handle(CommandInterface $command): CommandResultInterface
     {
         if ($command->test === 'success') {
-            return new SuccessResult(
+            return CommandResult::success(
                 StatusMessage::success($command->test)
             );
         }
 
-        return new ErrorResult(
+        return CommandResult::error(
             StatusMessage::error($command->test)
         );
     }

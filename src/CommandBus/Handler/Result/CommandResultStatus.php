@@ -10,9 +10,9 @@ declare(strict_types=1);
 
 namespace Communitales\Component\CommandBus\Handler\Result;
 
-/**
- * Command completed successfully.
- */
-class SuccessResult extends AbstractResult
+enum CommandResultStatus: string
 {
+    case Success = 'success';
+    case Error = 'error';
+    case Failed = 'failed';
 }

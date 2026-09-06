@@ -11,7 +11,7 @@ declare(strict_types=1);
 namespace Communitales\Component\CommandBus;
 
 use Communitales\Component\CommandBus\Command\CommandInterface;
-use Communitales\Component\CommandBus\Handler\Result\CommandHandlerResultInterface;
+use Communitales\Component\CommandBus\Handler\Result\CommandResultInterface;
 
 /**
  * Interface CommandBusInterface
@@ -23,5 +23,5 @@ interface CommandBusInterface
     public function dispatch(
         CommandInterface $command,
         bool $displayStatusMessage = true
-    ): CommandHandlerResultInterface;
+    ): CommandResultInterface;
 }

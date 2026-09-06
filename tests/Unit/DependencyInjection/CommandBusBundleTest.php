@@ -17,9 +17,9 @@ use Communitales\Component\CommandBus\CommandBusBundle;
 use Communitales\Component\CommandBus\DependencyInjection\CommandBusExtension;
 use Communitales\Component\CommandBus\DependencyInjection\CommandHandlerCompilerPass;
 use Communitales\Component\CommandBus\Handler\CommandHandlerInterface;
-use Communitales\Component\CommandBus\Handler\Result\AbstractResult;
-use Communitales\Component\CommandBus\Handler\Result\CommandHandlerResultInterface;
-use Communitales\Component\CommandBus\Handler\Result\SuccessResult;
+use Communitales\Component\CommandBus\Handler\Result\CommandResult;
+use Communitales\Component\CommandBus\Handler\Result\CommandResultInterface;
+use Communitales\Component\CommandBus\Handler\Result\CommandResultStatus;
 use Exception;
 use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -33,7 +33,7 @@ use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
 #[CoversClass(CommandBusExtension::class)]
 #[CoversClass(CommandHandlerCompilerPass::class)]
 #[UsesClass(CommandBus::class)]
-#[UsesClass(AbstractResult::class)]
+#[UsesClass(CommandResult::class)]
 final class CommandBusBundleTest extends TestCase
 {
     /** @throws Exception */
@@ -46,7 +46,7 @@ final class CommandBusBundleTest extends TestCase
         $this->assertSame(0, AttributedHandler::$instances);
 
         $commandBus = $this->getCommandBus($container);
-        $this->assertInstanceOf(SuccessResult::class, $commandBus->dispatch(new AttributedCommand()));
+        $this->assertSame(CommandResultStatus::Success, $commandBus->dispatch(new AttributedCommand())->getStatus());
         $this->assertSame(1, AttributedHandler::$instances);
     }
 
@@ -107,9 +107,9 @@ final class AttributedHandler implements CommandHandlerInterface
     }
 
     /** @param AttributedCommand $command */
-    public function handle(CommandInterface $command): CommandHandlerResultInterface
+    public function handle(CommandInterface $command): CommandResultInterface
     {
-        return new SuccessResult();
+        return CommandResult::success();
     }
 }
 
@@ -118,8 +118,8 @@ final class AttributedHandler implements CommandHandlerInterface
 final class DuplicateAttributedHandler implements CommandHandlerInterface
 {
     /** @param AttributedCommand $command */
-    public function handle(CommandInterface $command): CommandHandlerResultInterface
+    public function handle(CommandInterface $command): CommandResultInterface
     {
-        return new SuccessResult();
+        return CommandResult::success();
     }
 }

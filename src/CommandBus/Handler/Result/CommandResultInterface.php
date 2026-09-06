@@ -12,10 +12,9 @@ namespace Communitales\Component\CommandBus\Handler\Result;
 
 use Communitales\Component\StatusBus\StatusMessage;
 
-/**
- * Marker interface for CommandHandlers
- */
-interface CommandHandlerResultInterface
+interface CommandResultInterface
 {
+    public function getStatus(): CommandResultStatus;
+
     public function getStatusMessage(): ?StatusMessage;
 }

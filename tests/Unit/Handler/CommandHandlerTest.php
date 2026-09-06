@@ -10,9 +10,8 @@ declare(strict_types=1);
 
 namespace Communitales\Test\Unit\Component\CommandBus\Handler;
 
-use Communitales\Component\CommandBus\Handler\Result\AbstractResult;
-use Communitales\Component\CommandBus\Handler\Result\ErrorResult;
-use Communitales\Component\CommandBus\Handler\Result\SuccessResult;
+use Communitales\Component\CommandBus\Handler\Result\CommandResult;
+use Communitales\Component\CommandBus\Handler\Result\CommandResultStatus;
 use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -20,7 +19,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * Class CommandHandlerTest
  */
-#[CoversClass(AbstractResult::class)]
+#[CoversClass(CommandResult::class)]
 final class CommandHandlerTest extends TestCase
 {
     private TestCommandHandler $commandHandler;
@@ -37,7 +36,8 @@ final class CommandHandlerTest extends TestCase
 
         $result = $this->commandHandler->handle($command);
 
-        $this->assertInstanceOf(SuccessResult::class, $result, 'Result should be SuccessResult. Message: '.$result->getStatusMessage());
+        $this->assertSame(CommandResultStatus::Success, $result->getStatus());
+        $this->assertSame('success', $result->getStatusMessage()?->getMessage());
     }
 
     public function testHandleError(): void
@@ -45,6 +45,7 @@ final class CommandHandlerTest extends TestCase
         $command = new TestCommand('error');
 
         $result = $this->commandHandler->handle($command);
-        $this->assertInstanceOf(ErrorResult::class, $result);
+        $this->assertSame(CommandResultStatus::Error, $result->getStatus());
+        $this->assertSame('error', $result->getStatusMessage()?->getMessage());
     }
 }

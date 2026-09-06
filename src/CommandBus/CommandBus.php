@@ -10,10 +10,9 @@ namespace Communitales\Component\CommandBus;
 
 use Communitales\Component\CommandBus\Command\CommandInterface;
 use Communitales\Component\CommandBus\Handler\CommandHandlerInterface;
-use Communitales\Component\CommandBus\Handler\Result\AbstractResult;
-use Communitales\Component\CommandBus\Handler\Result\CommandHandlerResultInterface;
-use Communitales\Component\CommandBus\Handler\Result\DatabaseErrorResult;
-use Communitales\Component\CommandBus\Handler\Result\FatalErrorResult;
+use Communitales\Component\CommandBus\Handler\Result\CommandResult;
+use Communitales\Component\CommandBus\Handler\Result\CommandResultException;
+use Communitales\Component\CommandBus\Handler\Result\CommandResultInterface;
 use Communitales\Component\Log\ExceptionLoggerInterface;
 use Communitales\Component\StatusBus\StatusBusInterface;
 use Communitales\Component\StatusBus\StatusMessage;
@@ -64,40 +63,53 @@ class CommandBus implements CommandBusInterface
     public function dispatch(
         CommandInterface $command,
         bool $displayStatusMessage = true
-    ): CommandHandlerResultInterface {
+    ): CommandResultInterface {
         $commandClass = $command::class;
 
-        if (!$this->handlers->has($commandClass)) {
-            throw CanNotDispatchCommandException::forClass($commandClass);
-        }
-
         try {
-            $handler = $this->requireCommandHandler($this->handlers->get($commandClass), $command);
-            $result = $handler->handle($command);
-        } catch (DbalException|ORMException|ManagerException $exception) {
-            $this->exceptionLogger?->logException($exception);
-            $result = new DatabaseErrorResult(StatusMessage::error($this->statusMessageDatabaseError));
-        } catch (Throwable $throwable) {
-            $this->exceptionLogger?->logException($throwable);
-            $result = new FatalErrorResult(StatusMessage::error($this->statusMessageFatalError));
-        }
-
-        // If a StatusBus was set, then send StatusMessage of the result.
-        if ($result instanceof AbstractResult) {
-            $statusMessage = $result->statusMessage;
-
-            if (
-                $displayStatusMessage
-                && $statusMessage instanceof StatusMessage
-                && $this->statusBus instanceof StatusBusInterface
-            ) {
-                $this->statusBus->publish($statusMessage);
+            if (!$this->handlers->has($commandClass)) {
+                throw CanNotDispatchCommandException::forClass($commandClass);
             }
 
-            return $result;
+            $handler = $this->requireCommandHandler($this->handlers->get($commandClass), $command);
+            $result = $handler->handle($command);
+        } catch (CommandResultException $exception) {
+            $result = $exception->commandResult;
+        } catch (DbalException|ORMException|ManagerException $exception) {
+            $this->logException($exception);
+            $result = CommandResult::failed(StatusMessage::error($this->statusMessageDatabaseError));
+        } catch (Throwable $throwable) {
+            $this->logException($throwable);
+            $result = CommandResult::failed(StatusMessage::error($this->statusMessageFatalError));
+        }
+
+        if ($displayStatusMessage) {
+            $this->publishStatusMessage($result);
         }
 
         return $result;
+    }
+
+    private function publishStatusMessage(CommandResultInterface $result): void
+    {
+        try {
+            $statusMessage = $result->getStatusMessage();
+
+            if ($statusMessage instanceof StatusMessage && $this->statusBus instanceof StatusBusInterface) {
+                $this->statusBus->publish($statusMessage);
+            }
+        } catch (Throwable $throwable) {
+            $this->logException($throwable);
+        }
+    }
+
+    private function logException(Throwable $throwable): void
+    {
+        try {
+            $this->exceptionLogger?->logException($throwable);
+        } catch (Throwable) {
+            // Logging must never prevent the command bus from returning a result.
+        }
     }
 
     /**
