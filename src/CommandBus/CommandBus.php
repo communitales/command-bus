@@ -1,69 +1,46 @@
 <?php
 
-/**
- * @copyright   Copyright (c) 2020 - 2024 Communitales GmbH (https://www.communitales.com/)
+/*
+ * SPDX-FileCopyrightText: 2020 Communitales GmbH
  *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * SPDX-License-Identifier: MIT
  */
 
 namespace Communitales\Component\CommandBus;
 
 use Communitales\Component\CommandBus\Command\CommandInterface;
 use Communitales\Component\CommandBus\Handler\CommandHandlerInterface;
-use Communitales\Component\CommandBus\Handler\Result\AbstractResult;
-use Communitales\Component\CommandBus\Handler\Result\CommandHandlerResultInterface;
-use Communitales\Component\CommandBus\Handler\Result\DatabaseErrorResult;
-use Communitales\Component\CommandBus\Handler\Result\FatalErrorResult;
-use Communitales\Component\Log\LogAwareTrait;
-use Communitales\Component\StatusBus\StatusBusAwareInterface;
-use Communitales\Component\StatusBus\StatusBusAwareTrait;
+use Communitales\Component\CommandBus\Handler\Result\CommandResult;
+use Communitales\Component\CommandBus\Handler\Result\CommandResultException;
+use Communitales\Component\CommandBus\Handler\Result\CommandResultInterface;
+use Communitales\Component\Log\ExceptionLoggerInterface;
+use Communitales\Component\StatusBus\StatusBusInterface;
 use Communitales\Component\StatusBus\StatusMessage;
 use Doctrine\DBAL\Exception as DbalException;
 use Doctrine\ORM\Exception\ManagerException;
 use Doctrine\ORM\Exception\ORMException;
-use Exception;
-use IteratorAggregate;
+use LogicException;
 use Override;
-use Psr\Log\LoggerAwareInterface;
-use Symfony\Component\Translation\TranslatableMessage;
+use Symfony\Contracts\Service\ServiceCollectionInterface;
 use Throwable;
+
+use function sprintf;
 
 /**
  * CommandBus to handle commands via handlers.
  */
-class CommandBus implements CommandBusInterface, LoggerAwareInterface, StatusBusAwareInterface
+class CommandBus implements CommandBusInterface
 {
-    use StatusBusAwareTrait;
-    use LogAwareTrait;
+    private string $statusMessageDatabaseError = 'status_message.database_error';
 
-    /**
-     * @var CommandHandlerInterface[]
-     */
-    private array $commandHandlers = [];
+    private string $statusMessageFatalError = 'status_message.fatal_error';
 
-    private TranslatableMessage $statusMessageDatabaseError;
-
-    private TranslatableMessage $statusMessageFatalError;
-
-    /**
-     * @param IteratorAggregate<CommandHandlerInterface> $commandBusHandlers
-     *
-     * @throws Exception
-     */
-    public function __construct(iterable $commandBusHandlers)
-    {
-        foreach ($commandBusHandlers->getIterator() as $commandHandler) {
-            $this->addCommandHandler($commandHandler);
-        }
-
-        $this->statusMessageDatabaseError = new TranslatableMessage('status_message.database_error');
-        $this->statusMessageFatalError = new TranslatableMessage('status_message.fatal_error');
-    }
-
-    public function addCommandHandler(CommandHandlerInterface $commandHandler): void
-    {
-        $this->commandHandlers[] = $commandHandler;
+    /** @param ServiceCollectionInterface<CommandHandlerInterface<*>> $handlers */
+    public function __construct(
+        private readonly ServiceCollectionInterface $handlers,
+        private readonly ?ExceptionLoggerInterface $exceptionLogger = null,
+        private readonly ?StatusBusInterface $statusBus = null
+    ) {
     }
 
     /**
@@ -71,7 +48,7 @@ class CommandBus implements CommandBusInterface, LoggerAwareInterface, StatusBus
      */
     public function setStatusMessageDatabaseError(string $statusMessageDatabaseError): void
     {
-        $this->statusMessageDatabaseError = new TranslatableMessage($statusMessageDatabaseError);
+        $this->statusMessageDatabaseError = $statusMessageDatabaseError;
     }
 
     /**
@@ -79,49 +56,78 @@ class CommandBus implements CommandBusInterface, LoggerAwareInterface, StatusBus
      */
     public function setStatusMessageFatalError(string $statusMessageFatalError): void
     {
-        $this->statusMessageFatalError = new TranslatableMessage($statusMessageFatalError);
+        $this->statusMessageFatalError = $statusMessageFatalError;
     }
 
     #[Override]
     public function dispatch(
         CommandInterface $command,
         bool $displayStatusMessage = true
-    ): CommandHandlerResultInterface {
-        $result = null;
+    ): CommandResultInterface {
+        $commandClass = $command::class;
 
         try {
-            foreach ($this->commandHandlers as $commandHandler) {
-                if ($commandHandler->canHandle($command)) {
-                    $result = $commandHandler->handle($command);
-                }
+            if (!$this->handlers->has($commandClass)) {
+                throw CanNotDispatchCommandException::forClass($commandClass);
             }
+
+            $handler = $this->requireCommandHandler($this->handlers->get($commandClass), $command);
+            $result = $handler->handle($command);
+        } catch (CommandResultException $exception) {
+            $result = $exception->commandResult;
         } catch (DbalException|ORMException|ManagerException $exception) {
             $this->logException($exception);
-            $result = new DatabaseErrorResult(StatusMessage::createErrorMessage($this->statusMessageDatabaseError));
+            $result = CommandResult::failed(StatusMessage::error($this->statusMessageDatabaseError));
         } catch (Throwable $throwable) {
             $this->logException($throwable);
-            $result = new FatalErrorResult(StatusMessage::createErrorMessage($this->statusMessageFatalError));
+            $result = CommandResult::failed(StatusMessage::error($this->statusMessageFatalError));
         }
 
-        // If a StatusBus was set, then send StatusMessage of the result.
-        if ($result instanceof AbstractResult) {
-            $statusMessage = $result->statusMessage;
+        if ($displayStatusMessage) {
+            $this->publishStatusMessage($result);
+        }
 
-            if (
-                $displayStatusMessage
-                && $statusMessage instanceof StatusMessage
-                && isset($this->statusBus)
-            ) {
-                $this->statusBus->addStatusMessage($statusMessage);
+        return $result;
+    }
+
+    private function publishStatusMessage(CommandResultInterface $result): void
+    {
+        try {
+            $statusMessage = $result->getStatusMessage();
+
+            if ($statusMessage instanceof StatusMessage && $this->statusBus instanceof StatusBusInterface) {
+                $this->statusBus->publish($statusMessage);
             }
+        } catch (Throwable $throwable) {
+            $this->logException($throwable);
+        }
+    }
 
-            return $result;
+    private function logException(Throwable $throwable): void
+    {
+        try {
+            $this->exceptionLogger?->logException($throwable);
+        } catch (Throwable) {
+            // Logging must never prevent the command bus from returning a result.
+        }
+    }
+
+    /**
+     * @template TCommand of CommandInterface
+     *
+     * @param TCommand $command
+     *
+     * @return CommandHandlerInterface<TCommand>
+     */
+    private function requireCommandHandler(mixed $handler, CommandInterface $command): CommandHandlerInterface
+    {
+        if (!$handler instanceof CommandHandlerInterface) {
+            throw new LogicException(sprintf(
+                'The handler configured for command "%s" does not implement CommandHandlerInterface.',
+                $command::class
+            ));
         }
 
-        if ($result instanceof CommandHandlerResultInterface) {
-            return $result;
-        }
-
-        throw CanNotDispatchCommandException::forClass($command::class);
+        return $handler;
     }
 }

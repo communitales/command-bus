@@ -1,0 +1,16 @@
+name: Codequality
+
+on:
+    pull_request:
+    workflow_dispatch:
+
+concurrency:
+    group: codequality-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    contents: read
+
+jobs:
+    test:
+        uses: ./.github/workflows/reusable-codequality.yml

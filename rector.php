@@ -1,19 +1,28 @@
 <?php
+
 declare(strict_types=1);
 
-use Rector\Config\RectorConfig;
-use Rector\Set\ValueObject\LevelSetList;
-use Rector\Set\ValueObject\SetList;
+/*
+ * SPDX-FileCopyrightText: 2020 Communitales GmbH
+ *
+ * SPDX-License-Identifier: MIT
+ */
 
-return static function (RectorConfig $rectorConfig): void {
-    $rectorConfig->paths([
+use Rector\Config\RectorConfig;
+
+return RectorConfig::configure()
+    ->withPaths([
         __DIR__.'/src',
         __DIR__.'/tests',
-    ]);
-    $rectorConfig->sets([
-        LevelSetList::UP_TO_PHP_83,
-        SetList::CODING_STYLE,
-        SetList::CODE_QUALITY,
-    ]);
-    $rectorConfig->importNames();
-};
+    ])
+    ->withPreparedSets(
+        deadCode: true,
+        codeQuality: true,
+        codingStyle: true,
+        typeDeclarations: true,
+        phpunitCodeQuality: true,
+    )
+    ->withPhpSets(php84: true)
+    ->withComposerBased(phpunit: true)
+    ->withImportNames()
+    ->withCache('var/cache/rector');

@@ -1,23 +1,26 @@
 <?php
 
-/**
- * @copyright   Copyright (c) 2024 Communitales GmbH (https://www.communitales.com/)
+declare(strict_types=1);
+
+/*
+ * SPDX-FileCopyrightText: 2020 Communitales GmbH
  *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * SPDX-License-Identifier: MIT
  */
 
 namespace Communitales\Test\Unit\Component\CommandBus\Handler;
 
-use Communitales\Component\CommandBus\Handler\Result\ErrorResult;
-use Communitales\Component\CommandBus\Handler\Result\SuccessResult;
+use Communitales\Component\CommandBus\Handler\Result\CommandResult;
+use Communitales\Component\CommandBus\Handler\Result\CommandResultStatus;
 use Override;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 /**
  * Class CommandHandlerTest
  */
-class CommandHandlerTest extends TestCase
+#[CoversClass(CommandResult::class)]
+final class CommandHandlerTest extends TestCase
 {
     private TestCommandHandler $commandHandler;
 
@@ -32,11 +35,9 @@ class CommandHandlerTest extends TestCase
         $command = new TestCommand('success');
 
         $result = $this->commandHandler->handle($command);
-        if (!$result instanceof SuccessResult) {
-            self::fail('Result should be SuccessResult. Message: '.(string)$result->getStatusMessage());
-        }
 
-        $this->assertInstanceOf(SuccessResult::class, $result);
+        $this->assertSame(CommandResultStatus::Success, $result->getStatus());
+        $this->assertSame('success', $result->getStatusMessage()?->getMessage());
     }
 
     public function testHandleError(): void
@@ -44,6 +45,7 @@ class CommandHandlerTest extends TestCase
         $command = new TestCommand('error');
 
         $result = $this->commandHandler->handle($command);
-        $this->assertInstanceOf(ErrorResult::class, $result);
+        $this->assertSame(CommandResultStatus::Error, $result->getStatus());
+        $this->assertSame('error', $result->getStatusMessage()?->getMessage());
     }
 }

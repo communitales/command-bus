@@ -1,0 +1,99 @@
+name: PHP
+
+on:
+    workflow_call:
+
+permissions:
+    contents: read
+
+jobs:
+    compatibility:
+        name: PHP ${{ matrix.php }} / ${{ matrix.dependencies }} dependencies
+        runs-on: ubuntu-24.04
+        timeout-minutes: 10
+
+        strategy:
+            fail-fast: false
+            matrix:
+                dependencies:
+                    - highest
+                    - lowest
+                php:
+                    - '8.4'
+
+        steps:
+            -   name: Checkout
+                uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+                with:
+                    persist-credentials: false
+
+            -   name: Setup PHP
+                uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+                with:
+                    php-version: ${{ matrix.php }}
+                    coverage: none
+                    ini-values: display_errors=On, display_startup_errors=On, error_reporting=-1, zend.assertions=1
+
+            -   name: Validate Composer configuration
+                run: composer validate --strict
+
+            -   name: Install highest dependencies
+                if: matrix.dependencies == 'highest'
+                run: composer update --no-ansi --no-interaction --no-progress --prefer-dist
+
+            -   name: Install lowest dependencies
+                if: matrix.dependencies == 'lowest'
+                run: composer update --no-ansi --no-interaction --no-progress --prefer-dist --prefer-lowest --prefer-stable
+
+            -   name: Audit dependencies
+                run: composer audit --abandoned=report
+
+            -   name: Run tests
+                run: vendor/bin/phpunit
+
+    quality:
+        name: Quality and coverage / PHP 8.5
+        runs-on: ubuntu-24.04
+        timeout-minutes: 10
+
+        steps:
+            -   name: Checkout
+                uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+                with:
+                    persist-credentials: false
+
+            -   name: Setup PHP
+                uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+                with:
+                    php-version: '8.5'
+                    coverage: xdebug
+                    ini-values: display_errors=On, display_startup_errors=On, error_reporting=-1, zend.assertions=1
+
+            -   name: Validate Composer configuration
+                run: composer validate --strict
+
+            -   name: Install dependencies
+                run: composer update --no-ansi --no-interaction --no-progress --prefer-dist
+
+            -   name: Audit dependencies
+                run: composer audit --abandoned=report
+
+            -   name: Check PHP syntax
+                run: find src tests -type f -name "*.php" -print0 | xargs -0 -n 1 php -l
+
+            -   name: PHPStan
+                run: vendor/bin/phpstan analyse -c phpstan.neon.dist --no-progress
+
+            -   name: Rector
+                run: vendor/bin/rector process --dry-run
+
+            -   name: PHP-CS-Fixer
+                run: vendor/bin/php-cs-fixer fix --dry-run --diff
+
+            -   name: PHPUnit with 100% coverage requirement
+                run: |
+                    vendor/bin/phpunit --coverage-text=var/coverage.txt --only-summary-for-coverage-text --colors=never
+                    cat var/coverage.txt
+                    grep -Eq '^  Classes:[[:space:]]+100\.00%' var/coverage.txt
+                    grep -Eq '^  Methods:[[:space:]]+100\.00%' var/coverage.txt
+                    grep -Eq '^  Lines:[[:space:]]+100\.00%' var/coverage.txt

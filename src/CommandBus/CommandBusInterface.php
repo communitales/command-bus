@@ -1,15 +1,17 @@
 <?php
-/**
- * @copyright   Copyright (c) 2020 - 2023 Communitales GmbH (https://www.communitales.com/)
+
+declare(strict_types=1);
+
+/*
+ * SPDX-FileCopyrightText: 2020 Communitales GmbH
  *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * SPDX-License-Identifier: MIT
  */
 
 namespace Communitales\Component\CommandBus;
 
 use Communitales\Component\CommandBus\Command\CommandInterface;
-use Communitales\Component\CommandBus\Handler\Result\CommandHandlerResultInterface;
+use Communitales\Component\CommandBus\Handler\Result\CommandResultInterface;
 
 /**
  * Interface CommandBusInterface
@@ -21,5 +23,5 @@ interface CommandBusInterface
     public function dispatch(
         CommandInterface $command,
         bool $displayStatusMessage = true
-    ): CommandHandlerResultInterface;
+    ): CommandResultInterface;
 }

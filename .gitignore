@@ -1,7 +1,12 @@
-vendor/
-composer.lock
-docs/TODO-phpstan.md
-docs/TODO-psalm.md
-.phpunit.result.cache
-.phpunit.cache
-.php-cs-fixer.cache
+# Dependencies
+/vendor/
+
+# Local configuration
+/phpunit.xml
+
+# Generated files
+/var/
+/docs/TODO-phpstan.md
+
+# Libraries should test against resolved dependency ranges
+/composer.lock

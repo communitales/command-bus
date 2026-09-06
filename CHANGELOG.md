@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## Unreleased [BC Break]
+
+* Add `#[AsCommandHandler]` and automatic Symfony handler discovery.
+* Resolve handlers lazily from a service collection indexed by command class.
+* Reject invalid and duplicate command-handler mappings during container compilation.
+* Replace runtime `canHandle()` routing with one handler per command.
+* Make `CommandHandlerInterface` generic for PHPStan and remove the convention-based handler trait.
+* Replace the result class hierarchy with `CommandResult`, `CommandResultInterface` and
+  `CommandResultStatus` (`Success`, `Error`, `Failed`).
+* Guarantee that `CommandBusInterface::dispatch()` returns a result for missing handlers and all
+  caught technical errors instead of throwing an exception.
+* Update logging and status publishing to the current Communitales component contracts.
+* Removed: [BC] `CommandBusAwareInterface` and `CommandBusAwareTrait`
+
 ## 2.2.0
 
 * Change: The Method `getStatusMessage()` is back in `CommandHandlerResultInterface`. This provides a better error
