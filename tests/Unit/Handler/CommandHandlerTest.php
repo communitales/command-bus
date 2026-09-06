@@ -10,14 +10,17 @@ declare(strict_types=1);
 
 namespace Communitales\Test\Unit\Component\CommandBus\Handler;
 
+use Communitales\Component\CommandBus\Handler\Result\AbstractResult;
 use Communitales\Component\CommandBus\Handler\Result\ErrorResult;
 use Communitales\Component\CommandBus\Handler\Result\SuccessResult;
 use Override;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 /**
  * Class CommandHandlerTest
  */
+#[CoversClass(AbstractResult::class)]
 final class CommandHandlerTest extends TestCase
 {
     private TestCommandHandler $commandHandler;

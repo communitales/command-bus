@@ -1,116 +1,112 @@
 # Communitales Command Bus Component
 
-Decouple applications with a synchronous command bus.
-
+A small synchronous command bus with a uniform result contract and lazy command handlers.
 
 ## Setup
 
-```
+```bash
 composer require communitales/command-bus
 ```
 
-Setup for Symfony in `services.yaml`:
+Enable the bundle in `config/bundles.php`:
 
+```php
+use Communitales\Component\CommandBus\CommandBusBundle;
+
+return [
+    CommandBusBundle::class => ['all' => true],
+];
 ```
+
+Application services must use Symfony autoconfiguration (enabled by default):
+
+```yaml
+# config/services.yaml
 services:
-
-    _instanceof:
-        Communitales\Component\CommandBus\CommandBusAwareInterface:
-            calls:
-                - [setCommandBus, ['@Communitales\Component\CommandBus\CommandBus']]
-
-        Communitales\Component\CommandBus\Handler\CommandHandlerInterface:
-            tags: ['communitales.command_handler']
-
-
-    Communitales\Component\CommandBus\CommandBus:
-        arguments:
-            - !tagged_iterator communitales.command_handler
-
+    _defaults:
+        autowire: true
+        autoconfigure: true
 ```
 
+The bundle registers `CommandBusInterface` and discovers handlers through the
+`#[AsCommandHandler]` attribute. Handlers are stored in a lazy service locator indexed by the
+command class. Only the handler selected by `dispatch()` is instantiated.
 
 ## Usage
 
-Example of a command:
+Define a command:
 
-```
-
+```php
 namespace App\Domain\Command\Customer;
 
-use Communitales\Component\CommandBus\Command\CommandInterface;
 use App\Entity\Customer;
+use Communitales\Component\CommandBus\Command\CommandInterface;
 
-readonly class CreateCustomerCommand implements CommandInterface
+final readonly class CreateCustomerCommand implements CommandInterface
 {
     public function __construct(public Customer $customer)
     {
     }
 }
-
 ```
 
-Example of a command handler:
+Define exactly one handler for the command:
 
-
-```
-
+```php
 namespace App\Domain\Handler\Customer;
 
 use App\Domain\Command\Customer\CreateCustomerCommand;
-use App\Domain\Command\Customer\DeleteCustomerCommand;
-use App\Domain\Command\Customer\UpdateCustomerCommand;
 use App\Repository\CustomerRepository;
+use Communitales\Component\CommandBus\Attribute\AsCommandHandler;
 use Communitales\Component\CommandBus\Command\CommandInterface;
 use Communitales\Component\CommandBus\Handler\CommandHandlerInterface;
-use Communitales\Component\CommandBus\Handler\CommandHandlerTrait;
 use Communitales\Component\CommandBus\Handler\Result\CommandHandlerResultInterface;
 use Communitales\Component\CommandBus\Handler\Result\SuccessResult;
 use Communitales\Component\StatusBus\StatusMessage;
-use Override;
-use Symfony\Component\Translation\TranslatableMessage;
 
-use function sprintf;
-
-class CustomerCommandHandler implements CommandHandlerInterface
+/** @implements CommandHandlerInterface<CreateCustomerCommand> */
+#[AsCommandHandler(CreateCustomerCommand::class)]
+final class CreateCustomerCommandHandler implements CommandHandlerInterface
 {
-    use CommandHandlerTrait;
-
-    public function __construct(private readonly CustomerRepository $customerRepository) {
-    }
-
-    #[Override]
-    public function canHandle(CommandInterface $command): bool
+    public function __construct(private readonly CustomerRepository $customerRepository)
     {
-        return $command instanceof CreateCustomerCommand
-            || $command instanceof UpdateCustomerCommand
-            || $command instanceof DeleteCustomerCommand;
     }
 
-    private function createCustomer(CreateCustomerCommand $command): CommandHandlerResultInterface
+    /** @param CreateCustomerCommand $command */
+    public function handle(CommandInterface $command): CommandHandlerResultInterface
     {
         $customer = $command->customer;
 
         $this->customerRepository->save($customer);
 
-        return new SuccessResult(
-            StatusMessage::createSuccessMessage(
-                new TranslatableMessage(
-                    'domain_customer.result_created', ['name' => $customer->getName()]
-                )
-            )
-        );
-    }
-
-    private function updateCustomer(UpdateCustomerCommand $command): CommandHandlerResultInterface
-    {
-        // ...
-    }
-
-    private function deleteCustomer(DeleteCustomerCommand $command): CommandHandlerResultInterface
-    {
-        // ...
+        return new SuccessResult(StatusMessage::success(
+            'domain_customer.result_created',
+            ['name' => $customer->getName()],
+        ));
     }
 }
-
 ```
+
+Dispatch the command through the interface:
+
+```php
+use Communitales\Component\CommandBus\CommandBusInterface;
+
+final readonly class CustomerController
+{
+    public function __construct(private CommandBusInterface $commandBus)
+    {
+    }
+
+    public function create(CreateCustomerCommand $command): void
+    {
+        $result = $this->commandBus->dispatch($command);
+
+        // Present the CommandHandlerResultInterface as HTML, JSON, CLI output, etc.
+    }
+}
+```
+
+Every handler must declare one `#[AsCommandHandler]` attribute. Invalid command classes and
+multiple handlers for the same command cause container compilation to fail. Dispatching a command
+without a registered handler raises `CanNotDispatchCommandException`.

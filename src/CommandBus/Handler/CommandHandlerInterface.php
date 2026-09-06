@@ -13,12 +13,9 @@ namespace Communitales\Component\CommandBus\Handler;
 use Communitales\Component\CommandBus\Command\CommandInterface;
 use Communitales\Component\CommandBus\Handler\Result\CommandHandlerResultInterface;
 
-/**
- * Interface CommandHandlerInterface
- */
+/** @template-contravariant TCommand of CommandInterface */
 interface CommandHandlerInterface
 {
-    public function canHandle(CommandInterface $command): bool;
-
+    /** @param TCommand $command */
     public function handle(CommandInterface $command): CommandHandlerResultInterface;
 }

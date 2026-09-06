@@ -10,45 +10,32 @@ declare(strict_types=1);
 
 namespace Communitales\Test\Unit\Component\CommandBus\Handler;
 
+use Communitales\Component\CommandBus\Attribute\AsCommandHandler;
 use Communitales\Component\CommandBus\Command\CommandInterface;
 use Communitales\Component\CommandBus\Handler\CommandHandlerInterface;
-use Communitales\Component\CommandBus\Handler\CommandHandlerTrait;
 use Communitales\Component\CommandBus\Handler\Result\CommandHandlerResultInterface;
 use Communitales\Component\CommandBus\Handler\Result\ErrorResult;
 use Communitales\Component\CommandBus\Handler\Result\SuccessResult;
 use Communitales\Component\StatusBus\StatusMessage;
-use Override;
-use Symfony\Component\Translation\TranslatableMessage;
 
 /**
  * Class TestCommandHandler
  */
+/** @implements CommandHandlerInterface<TestCommand> */
+#[AsCommandHandler(TestCommand::class)]
 class TestCommandHandler implements CommandHandlerInterface
 {
-    use CommandHandlerTrait;
-
-    #[Override]
-    public function canHandle(CommandInterface $command): bool
-    {
-        return $command instanceof TestCommand;
-    }
-
-    public function test(TestCommand $command): CommandHandlerResultInterface
+    /** @param TestCommand $command */
+    public function handle(CommandInterface $command): CommandHandlerResultInterface
     {
         if ($command->test === 'success') {
             return new SuccessResult(
-                StatusMessage::createSuccessMessage(
-                    new TranslatableMessage(
-                        $command->test
-                    )
-                )
+                StatusMessage::success($command->test)
             );
         }
 
         return new ErrorResult(
-            StatusMessage::createErrorMessage(
-                $command->test
-            )
+            StatusMessage::error($command->test)
         );
     }
 }
