@@ -24,7 +24,7 @@ use Communitales\Component\StatusBus\StatusBusInterface;
 use Communitales\Component\StatusBus\StatusMessage;
 use Communitales\Test\Unit\Component\CommandBus\Handler\TestCommand;
 use Communitales\Test\Unit\Component\CommandBus\Handler\TestCommandHandler;
-use Doctrine\DBAL\Exception as DbalException;
+use Doctrine\DBAL\Exception\InvalidArgumentException as DbalException;
 use LogicException;
 use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -87,7 +87,7 @@ final class CommandBusTest extends TestCase
 
     public function testDatabaseExceptionReturnsFailedResultAndUsesDatabaseMessage(): void
     {
-        $exception = new TestDbalException('Database unavailable');
+        $exception = new DbalException('Database unavailable');
         $exceptionLogger = $this->createMock(ExceptionLoggerInterface::class);
         $exceptionLogger
             ->expects($this->once())
@@ -258,8 +258,4 @@ final readonly class CallbackCommandHandler implements CommandHandlerInterface
     {
         return ($this->callback)($command);
     }
-}
-
-final class TestDbalException extends RuntimeException implements DbalException
-{
 }
