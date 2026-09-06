@@ -92,7 +92,7 @@ jobs:
 
             -   name: PHPUnit with 100% coverage requirement
                 run: |
-                    vendor/bin/phpunit --coverage-text=var/coverage.txt --colors=never
+                    vendor/bin/phpunit --coverage-text=var/coverage.txt --only-summary-for-coverage-text --colors=never
                     cat var/coverage.txt
                     grep -Eq '^  Classes:[[:space:]]+100\.00%' var/coverage.txt
                     grep -Eq '^  Methods:[[:space:]]+100\.00%' var/coverage.txt
