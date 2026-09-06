@@ -1,10 +1,11 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2020 - 2026 Communitales GmbH (https://www.communitales.com/)
+declare(strict_types=1);
+
+/*
+ * SPDX-FileCopyrightText: 2020 Communitales GmbH
  *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * SPDX-License-Identifier: MIT
  */
 
 namespace Communitales\Test\Unit\Component\CommandBus\Handler;
@@ -17,7 +18,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * Class CommandHandlerTest
  */
-class CommandHandlerTest extends TestCase
+final class CommandHandlerTest extends TestCase
 {
     private TestCommandHandler $commandHandler;
 
@@ -33,7 +34,7 @@ class CommandHandlerTest extends TestCase
 
         $result = $this->commandHandler->handle($command);
 
-        $this->assertInstanceOf(SuccessResult::class, $result, 'Result should be SuccessResult. Message: '.(string)$result->getStatusMessage());
+        $this->assertInstanceOf(SuccessResult::class, $result, 'Result should be SuccessResult. Message: '.$result->getStatusMessage());
     }
 
     public function testHandleError(): void

@@ -1,10 +1,9 @@
 <?php
 
-/**
- * @copyright Copyright (c) 2020 - 2026 Communitales GmbH (https://www.communitales.com/)
+/*
+ * SPDX-FileCopyrightText: 2020 Communitales GmbH
  *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * SPDX-License-Identifier: MIT
  */
 
 namespace Communitales\Component\CommandBus;
@@ -36,6 +35,8 @@ class CommandBus implements CommandBusInterface, LoggerAwareInterface, StatusBus
 {
     use StatusBusAwareTrait;
     use LogAwareTrait;
+
+    public $statusBus;
 
     /**
      * @var CommandHandlerInterface[]
@@ -110,7 +111,7 @@ class CommandBus implements CommandBusInterface, LoggerAwareInterface, StatusBus
             if (
                 $displayStatusMessage
                 && $statusMessage instanceof StatusMessage
-                && isset($this->statusBus)
+                && (property_exists($this, 'statusBus') && $this->statusBus !== null)
             ) {
                 $this->statusBus->addStatusMessage($statusMessage);
             }
