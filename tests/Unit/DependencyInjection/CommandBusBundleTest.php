@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 /*
  * SPDX-FileCopyrightText: 2020 Communitales GmbH
- *
  * SPDX-License-Identifier: MIT
  */
 
@@ -42,7 +41,7 @@ final class CommandBusBundleTest extends TestCase
     {
         AttributedHandler::$instances = 0;
         $container = $this->createContainer(AttributedHandler::class);
-        $container->compile();
+        $container->compile(true);
 
         $this->assertSame(0, AttributedHandler::$instances);
 
@@ -58,7 +57,7 @@ final class CommandBusBundleTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessageIsOrContains('has multiple handlers');
 
-        $container->compile();
+        $container->compile(true);
     }
 
     public function testNonArrayHandlerTagIsRejected(): void
@@ -133,9 +132,7 @@ final class InvalidTagContainerBuilder extends ContainerBuilder
     }
 }
 
-final readonly class AttributedCommand implements CommandInterface
-{
-}
+final readonly class AttributedCommand implements CommandInterface {}
 
 /** @implements CommandHandlerInterface<AttributedCommand> */
 #[AsCommandHandler(AttributedCommand::class)]

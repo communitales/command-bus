@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 /*
  * SPDX-FileCopyrightText: 2020 Communitales GmbH
- *
  * SPDX-License-Identifier: MIT
  */
 
@@ -94,8 +93,8 @@ final class CommandBusTest extends TestCase
             ->method('logException')
             ->with($this->identicalTo($exception));
         $handlers = $this->createHandlerCollection([
-            TestCommand::class => static fn (): CallbackCommandHandler => new CallbackCommandHandler(
-                static fn (CommandInterface $command): never => throw $exception
+            TestCommand::class => static fn(): CallbackCommandHandler => new CallbackCommandHandler(
+                static fn(CommandInterface $command): never => throw $exception
             ),
         ]);
         $commandBus = new CommandBus($handlers, $exceptionLogger);
@@ -116,8 +115,8 @@ final class CommandBusTest extends TestCase
             ->method('logException')
             ->with($this->identicalTo($exception));
         $handlers = $this->createHandlerCollection([
-            TestCommand::class => static fn (): CallbackCommandHandler => new CallbackCommandHandler(
-                static fn (CommandInterface $command): never => throw $exception
+            TestCommand::class => static fn(): CallbackCommandHandler => new CallbackCommandHandler(
+                static fn(CommandInterface $command): never => throw $exception
             ),
         ]);
         $commandBus = new CommandBus($handlers, $exceptionLogger);
@@ -161,8 +160,8 @@ final class CommandBusTest extends TestCase
         $exceptionLogger = $this->createMock(ExceptionLoggerInterface::class);
         $exceptionLogger->expects($this->never())->method('logException');
         $handlers = $this->createHandlerCollection([
-            TestCommand::class => static fn (): CallbackCommandHandler => new CallbackCommandHandler(
-                static fn (CommandInterface $command): never => throw new CommandResultException($expectedResult)
+            TestCommand::class => static fn(): CallbackCommandHandler => new CallbackCommandHandler(
+                static fn(CommandInterface $command): never => throw new CommandResultException($expectedResult)
             ),
         ]);
         $commandBus = new CommandBus($handlers, $exceptionLogger);
@@ -174,7 +173,7 @@ final class CommandBusTest extends TestCase
     {
         $statusBus = new CollectingStatusBus();
         $handlers = $this->createHandlerCollection([
-            TestCommand::class => static fn (): TestCommandHandler => new TestCommandHandler(),
+            TestCommand::class => static fn(): TestCommandHandler => new TestCommandHandler(),
         ]);
         $commandBus = new CommandBus($handlers, statusBus: $statusBus);
 
@@ -192,7 +191,7 @@ final class CommandBusTest extends TestCase
             ->method('logException')
             ->willThrowException(new RuntimeException('Logger unavailable'));
         $handlers = $this->createHandlerCollection([
-            TestCommand::class => static fn (): TestCommandHandler => new TestCommandHandler(),
+            TestCommand::class => static fn(): TestCommandHandler => new TestCommandHandler(),
         ]);
         $commandBus = new CommandBus($handlers, $exceptionLogger, new ThrowingStatusBus());
 
@@ -220,9 +219,7 @@ final class HandlerCreationCounter
 }
 
 /** @extends ServiceLocator<CommandHandlerInterface<*>> */
-final class CommandHandlerServiceLocator extends ServiceLocator
-{
-}
+final class CommandHandlerServiceLocator extends ServiceLocator {}
 
 final class CollectingStatusBus implements StatusBusInterface
 {
@@ -249,9 +246,7 @@ final class ThrowingStatusBus implements StatusBusInterface
 final readonly class CallbackCommandHandler implements CommandHandlerInterface
 {
     /** @param Closure(CommandInterface): CommandResultInterface $callback */
-    public function __construct(private Closure $callback)
-    {
-    }
+    public function __construct(private Closure $callback) {}
 
     #[Override]
     public function handle(CommandInterface $command): CommandResultInterface

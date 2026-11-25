@@ -2,7 +2,6 @@
 
 /*
  * SPDX-FileCopyrightText: 2020 Communitales GmbH
- *
  * SPDX-License-Identifier: MIT
  */
 
@@ -40,8 +39,7 @@ class CommandBus implements CommandBusInterface
         private readonly ServiceCollectionInterface $handlers,
         private readonly ?ExceptionLoggerInterface $exceptionLogger = null,
         private readonly ?StatusBusInterface $statusBus = null
-    ) {
-    }
+    ) {}
 
     /**
      * This method can be used to set a different translation key or set up a plain text message without i18n.
