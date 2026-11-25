@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 /*
  * SPDX-FileCopyrightText: 2020 Communitales GmbH
- *
  * SPDX-License-Identifier: MIT
  */
 
@@ -18,8 +17,7 @@ readonly class CommandResult implements CommandResultInterface
     public function __construct(
         private CommandResultStatus $status,
         private ?StatusMessage $statusMessage = null
-    ) {
-    }
+    ) {}
 
     public static function success(?StatusMessage $statusMessage = null): self
     {

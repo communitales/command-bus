@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 /*
  * SPDX-FileCopyrightText: 2020 Communitales GmbH
- *
  * SPDX-License-Identifier: MIT
  */
 
@@ -18,7 +17,5 @@ final readonly class AsCommandHandler
     /**
      * @param class-string $handles
      */
-    public function __construct(public string $handles)
-    {
-    }
+    public function __construct(public string $handles) {}
 }

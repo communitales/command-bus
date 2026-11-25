@@ -20,6 +20,8 @@ jobs:
                     - lowest
                 php:
                     - '8.4'
+                    - '8.5'
+                    - '8.6'
 
         steps:
             -   name: Checkout

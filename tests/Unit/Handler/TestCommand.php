@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 /*
  * SPDX-FileCopyrightText: 2020 Communitales GmbH
- *
  * SPDX-License-Identifier: MIT
  */
 
@@ -17,7 +16,5 @@ use Communitales\Component\CommandBus\Command\CommandInterface;
  */
 readonly class TestCommand implements CommandInterface
 {
-    public function __construct(public string $test)
-    {
-    }
+    public function __construct(public string $test) {}
 }
