@@ -110,5 +110,18 @@ final readonly class CustomerController
 Every handler must declare one `#[AsCommandHandler]` attribute. Invalid command classes and
 multiple handlers for the same command cause container compilation to fail. `dispatch()` always
 returns a `CommandResultInterface`: expected application errors have status `Error`; missing
-handlers and caught technical exceptions have status `Failed` and are logged when an exception
-logger is configured.
+handlers and caught technical exceptions have status `Failed` and are logged.
+
+An `ExceptionLoggerInterface` service is required and must be available for autowiring. When
+constructing `CommandBus` directly, pass an implementation as the second argument. This is a
+breaking change for callers that previously omitted the logger. If the logger throws, the bus
+falls back to PHP's `error_log`, recording the exception class names without their messages or
+stack traces. The fallback is best effort: failure of both logging mechanisms is suppressed so
+that dispatch can still return its result.
+
+The bus does not start or roll back transactions. A handler can perform side effects before
+returning an error or throwing an exception, so a `Failed` result does not imply that nothing
+changed. Applications should establish transaction boundaries inside handlers or otherwise
+account for the returned result when managing transactions. Make handlers idempotent or use
+another deduplication strategy before retrying commands, especially when external services are
+involved; database transactions cannot roll back external side effects.

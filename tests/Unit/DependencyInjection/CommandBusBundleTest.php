@@ -19,14 +19,20 @@ use Communitales\Component\CommandBus\Handler\CommandHandlerInterface;
 use Communitales\Component\CommandBus\Handler\Result\CommandResult;
 use Communitales\Component\CommandBus\Handler\Result\CommandResultInterface;
 use Communitales\Component\CommandBus\Handler\Result\CommandResultStatus;
+use Communitales\Component\Log\ExceptionLoggerInterface;
 use Exception;
 use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\AbstractLogger;
+use Psr\Log\LogLevel;
 use stdClass;
+use Stringable;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
+use Symfony\Component\DependencyInjection\Exception\RuntimeException;
+use Throwable;
 
 #[CoversClass(AsCommandHandler::class)]
 #[CoversClass(CommandBusBundle::class)]
@@ -57,6 +63,15 @@ final class CommandBusBundleTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessageIsOrContains('has multiple handlers');
 
+        $container->compile(true);
+    }
+
+    public function testMissingLoggerIsRejectedDuringCompilation(): void
+    {
+        $container = $this->createContainer(AttributedHandler::class);
+        $container->removeDefinition(ExceptionLoggerInterface::class);
+
+        $this->expectException(RuntimeException::class);
         $container->compile(true);
     }
 
@@ -100,6 +115,7 @@ final class CommandBusBundleTest extends TestCase
         $container = new ContainerBuilder();
         new CommandBusBundle()->build($container);
         new CommandBusExtension()->load([], $container);
+        $container->register(ExceptionLoggerInterface::class, TestExceptionLogger::class);
         $container->getDefinition(CommandBus::class)->setPublic(true);
 
         foreach ($handlerClasses as $handlerClass) {
@@ -121,6 +137,13 @@ final class CommandBusBundleTest extends TestCase
 
         return $commandBus;
     }
+}
+
+final class TestExceptionLogger extends AbstractLogger implements ExceptionLoggerInterface
+{
+    public function log(mixed $level, string|Stringable $message, array $context = []): void {}
+
+    public function logException(Throwable $exception, array $context = [], string $level = LogLevel::ERROR): void {}
 }
 
 final class InvalidTagContainerBuilder extends ContainerBuilder

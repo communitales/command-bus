@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * SPDX-FileCopyrightText: 2020 Communitales GmbH
  * SPDX-License-Identifier: MIT
@@ -37,7 +39,7 @@ class CommandBus implements CommandBusInterface
     /** @param ServiceCollectionInterface<CommandHandlerInterface<*>> $handlers */
     public function __construct(
         private readonly ServiceCollectionInterface $handlers,
-        private readonly ?ExceptionLoggerInterface $exceptionLogger = null,
+        private readonly ExceptionLoggerInterface $exceptionLogger,
         private readonly ?StatusBusInterface $statusBus = null
     ) {}
 
@@ -104,9 +106,9 @@ class CommandBus implements CommandBusInterface
     private function logException(Throwable $throwable): void
     {
         try {
-            $this->exceptionLogger?->logException($throwable);
-        } catch (Throwable) {
-            // Logging must never prevent the command bus from returning a result.
+            $this->exceptionLogger->logException($throwable);
+        } catch (Throwable $loggerFailure) {
+            error_log(sprintf('Command bus logger failed (%s) while logging %s.', $loggerFailure::class, $throwable::class));
         }
     }
 

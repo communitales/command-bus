@@ -60,7 +60,7 @@ final class CommandBusTest extends TestCase
             },
         ]);
 
-        $commandBus = new CommandBus($handlers);
+        $commandBus = new CommandBus($handlers, $this->createStub(ExceptionLoggerInterface::class));
 
         $this->assertSame(0, HandlerCreationCounter::$requested);
         $this->assertSame(0, HandlerCreationCounter::$unrelated);
@@ -175,7 +175,7 @@ final class CommandBusTest extends TestCase
         $handlers = $this->createHandlerCollection([
             TestCommand::class => static fn(): TestCommandHandler => new TestCommandHandler(),
         ]);
-        $commandBus = new CommandBus($handlers, statusBus: $statusBus);
+        $commandBus = new CommandBus($handlers, $this->createStub(ExceptionLoggerInterface::class), $statusBus);
 
         $commandBus->dispatch(new TestCommand('success'));
 
@@ -195,9 +195,20 @@ final class CommandBusTest extends TestCase
         ]);
         $commandBus = new CommandBus($handlers, $exceptionLogger, new ThrowingStatusBus());
 
-        $result = $commandBus->dispatch(new TestCommand('success'));
+        $logFile = tempnam(sys_get_temp_dir(), 'command-bus-log-');
+        $previousLog = ini_get('error_log');
 
-        $this->assertSame(CommandResultStatus::Success, $result->getStatus());
+        try {
+            ini_set('error_log', $logFile);
+            $result = $commandBus->dispatch(new TestCommand('success'));
+            $this->assertSame(CommandResultStatus::Success, $result->getStatus());
+            $contents = file_get_contents($logFile);
+            $this->assertIsString($contents);
+            $this->assertStringContainsString('Command bus logger failed (RuntimeException) while logging RuntimeException.', $contents);
+        } finally {
+            ini_set('error_log', $previousLog);
+            unlink($logFile);
+        }
     }
 
     /**
